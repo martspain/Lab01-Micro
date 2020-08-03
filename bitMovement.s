@@ -45,42 +45,27 @@ main:
 	/*Se obtiene la direccion virtual*/
 	bl GetGpioAddress
 	
-	/*Puerto 17 salida (prende el primer led)*/
-	mov r0,#17
+	/*Puerto 2 salida (prende el primer led)*/
+	mov r0,#2
 	mov r1,#1
 	bl SetGpioFunction
 
-	/*Puerto 27 salida (prende el segundo led)*/ 
-	mov r0,#27
+	/*Puerto 3 salida (prende el segundo led)*/ 
+	mov r0,#3
 	mov r1,#1
 	bl SetGpioFunction
 	
-	/*Puerto 22 salida (prende el tercer led)*/
-	mov r0,#22
+	/*Puerto 4 salida (prende el tercer led)*/
+	mov r0,#4
 	mov r1,#1
 	bl SetGpioFunction
 
-	/*Puerto 16 entrada (recibe la entrada del boton*/ 
-	mov r0,#16
+	/*Puerto 12 entrada (recibe la entrada del boton*/ 
+	mov r0,#12
 	mov r1,#0
 	bl SetGpioFunction
 	
 menu:
-	/*Se encienden los puertos 17, 27 y 22*/
-	mov r0,#17
-	mov r1,#1
-	bl SetGpio
-	
-	/**/
-	mov r0,#27
-	mov r1,#1
-	bl SetGpio
-	
-	/**/
-	mov r0,#22
-	mov r1,#1
-	bl SetGpio
-	
 	/*Se muestra el menu principal*/ 
 	ldr r0,=opciones
 	bl puts
@@ -96,190 +81,138 @@ menu:
 	
 	/*Se compara r4 con las posibles opciones y se redirige el flujo del programa a la etiqueta correspondiente*/
 	cmp r4, #1
-	beq activeSecuence
+	beq activeLoop
 	
 	cmp r4, #2
-	beq inactiveSecuence
-	
-	cmp r4, #3
-	beq exitProgram
+	beq inactiveLoop
 	
 	b showError
 	
-activeSecuence:
-	/*Se apagan los leds para prepararse para la secuencia*/
-	mov r0,#17		
+activeLoop:
+	/*Se enciende el GPIO 2*/
+	mov r0,#2
 	mov r1,#0
 	bl SetGpio
-	
-	mov r0,#27		
-	mov r1,#0
-	bl SetGpio
-	
-	mov r0,#22		
-	mov r1,#0
-	bl SetGpio
-	
-	
-	buttonReader:
-		/*Se verifica si el boton ha sido presionado o no*/
-		ldr r6, =myloc
-		ldr r0, [r6]		
-		ldr r5,[r0,#0x34]	
-		mov r7,#1			
-		lsl r7,#16			
-		and r5,r7 			
 
-		/*Si el boton esta presionado hace lo siguiente*/
-		teq r5,#0
-		bne changeVariable
-		
-		/*Si no esta presionado se mantiene en el estado en que se encuentra*/
-		ldr r0,=ciclo_activo
-		ldr r0,[r0]
-		
-		cmp r0,#0
-		beq buttonReader
-		
-		cmp r0,#1
-		beq lightLoop
+	/*Se carga la memori virtual*/
+	ldr r6, =myloc
+ 	ldr r0, [r6]		 
+	ldr r5,[r0,#0x34]	
+	mov r7,#1			
+	lsl r7,#12			
+	and r5,r7 			
 	
-	changeVariable:
-		ldr r0,=ciclo_activo
-		ldr r0,[r0]
-		
-		cmp r0, #0
-		beq activateCycle
-		bne deactivateCycle
-		
-		activateCycle:
-			ldr r1,=ciclo_activo
-			mov r8, #1
-			str r8, [r1]
-			b lightLoop
-			
-		deactivateCycle:
-			ldr r1,=ciclo_activo
-			mov r8, #1
-			str r8, [r1]
-			b buttonReader
+	/*Si el boton se presiona se cambia de estado*/
+	teq r5,#0 			
+	movne r0,#2		
+	movne r1,#1
+	blne SetGpio
+	blne delay 
 	
-	lightLoop:
-		mov r0,#17		
-		mov r1,#1
-		bl SetGpio
-		bl delay
-		
-		mov r0,#17
-		mov r1,#0
-		bl SetGpio
-		
-		mov r0,#27
-		mov r1,#1
-		bl SetGpio
-		bl delay
-		
-		mov r0,#27
-		mov r1,#0
-		bl SetGpio
-		
-		mov r0,#22
-		mov r1,#1
-		bl SetGpio
-		bl delay
-		
-		mov r0,#22
-		mov r1,#0
-		bl SetGpio
-		
-		b buttonReader
-	
-inactiveSecuence:
-	/*Se encienden los leds para prepararse para la secuencia*/
-	mov r0,#17		
-	mov r1,#1
+	/*Se enciende el GPIO 3*/
+	mov r0,#3
+	mov r1,#0
 	bl SetGpio
-	
-	mov r0,#27		
-	mov r1,#1
-	bl SetGpio
-	
-	mov r0,#22		
-	mov r1,#1
-	bl SetGpio
-	
-	buttonReaderTwo:
-		/*Se verifica si el boton ha sido presionado o no*/
-		ldr r6, =myloc
-		ldr r0, [r6]		
-		ldr r5,[r0,#0x34]	
-		mov r7,#1			
-		lsl r7,#16			
-		and r5,r7 			
 
-		/*Si el boton esta presionado hace lo siguiente*/
-		teq r5,#0
-		bne changeVariableTwo
-		
-		/*Si no esta presionado se mantiene en el estado en que se encuentra*/
-		ldr r0,=ciclo_activo
-		ldr r0,[r0]
-		
-		cmp r0,#0
-		beq buttonReaderTwo
-		
-		cmp r0,#1
-		beq lightLoopTwo
+	/*Se carga la memori virtual*/
+	ldr r6, =myloc
+ 	ldr r0, [r6]		 
+	ldr r5,[r0,#0x34]	
+	mov r7,#1			
+	lsl r7,#12			
+	and r5,r7 			
 	
-	changeVariableTwo:
-		ldr r0,=ciclo_activo
-		ldr r0,[r0]
-		
-		cmp r0, #0
-		beq activateCycleTwo
-		bne deactivateCycleTwo
-		
-		activateCycleTwo:
-			ldr r1,=ciclo_activo
-			mov r8, #1
-			str r8, [r1]
-			b lightLoopTwo
-			
-		deactivateCycleTwo:
-			ldr r1,=ciclo_activo
-			mov r8, #1
-			str r8, [r1]
-			b buttonReaderTwo
+	/*Si el boton se presiona se cambia de estado*/
+	teq r5,#0 			
+	movne r0,#3		
+	movne r1,#1
+	blne SetGpio
+	blne delay 
 	
-	lightLoopTwo:
-		mov r0,#17		
-		mov r1,#0
-		bl SetGpio
-		bl delay
-		
-		mov r0,#17
-		mov r1,#1
-		bl SetGpio
-		
-		mov r0,#27
-		mov r1,#0
-		bl SetGpio
-		bl delay
-		
-		mov r0,#27
-		mov r1,#1
-		bl SetGpio
-		
-		mov r0,#22
-		mov r1,#0
-		bl SetGpio
-		bl delay
-		
-		mov r0,#22
-		mov r1,#1
-		bl SetGpio
-		
-		b buttonReaderTwo
+	/*Se enciende el GPIO 4*/
+	mov r0,#4
+	mov r1,#0
+	bl SetGpio
+
+	/*Se carga la memori virtual*/
+	ldr r6, =myloc
+ 	ldr r0, [r6]		 
+	ldr r5,[r0,#0x34]	
+	mov r7,#1			
+	lsl r7,#12			
+	and r5,r7 			
+	
+	/*Si el boton se presiona se cambia de estado*/
+	teq r5,#0 			
+	movne r0,#4		
+	movne r1,#1
+	blne SetGpio
+	blne delay 
+	
+	b activeLoop
+	
+inactiveLoop:
+	/*Se apaga el GPIO 2*/
+	mov r0,#2
+	mov r1,#1
+	bl SetGpio
+
+	/*Se carga la memori virtual*/
+	ldr r6, =myloc
+ 	ldr r0, [r6]		 
+	ldr r5,[r0,#0x34]	
+	mov r7,#1			
+	lsl r7,#12			
+	and r5,r7 			
+	
+	/*Si el boton se presiona se cambia de estado*/
+	teq r5,#0 			
+	movne r0,#2		
+	movne r1,#0
+	blne SetGpio
+	blne delay 
+	
+	/*Se enciende el GPIO 3*/
+	mov r0,#3
+	mov r1,#1
+	bl SetGpio
+
+	/*Se carga la memori virtual*/
+	ldr r6, =myloc
+ 	ldr r0, [r6]		 
+	ldr r5,[r0,#0x34]	
+	mov r7,#1			
+	lsl r7,#12			
+	and r5,r7 			
+	
+	/*Si el boton se presiona se cambia de estado*/
+	teq r5,#0 			
+	movne r0,#3		
+	movne r1,#0
+	blne SetGpio
+	blne delay 
+	
+	/*Se enciende el GPIO 4*/
+	mov r0,#4
+	mov r1,#1
+	bl SetGpio
+
+	/*Se carga la memori virtual*/
+	ldr r6, =myloc
+ 	ldr r0, [r6]		 
+	ldr r5,[r0,#0x34]	
+	mov r7,#1			
+	lsl r7,#12			
+	and r5,r7 			
+	
+	/*Si el boton se presiona se cambia de estado*/
+	teq r5,#0 			
+	movne r0,#4		
+	movne r1,#0
+	blne SetGpio
+	blne delay 
+	
+	b inactiveLoop
 
 showError:
 	/*Se muestra el mensaje de error*/
@@ -288,12 +221,6 @@ showError:
 	
 	/*Se vuelve al menu principal*/
 	b menu
-	
-exitProgram:
-	mov r0,#0
-	mov r3,#0
-	ldmfd sp!,{lr}
-	bx lr
 
 delay:
 	mov r0, #0x4000000 
@@ -316,9 +243,7 @@ ciclo_activo:		.word 0
 
 /*Mensajes para mostrar en pantalla*/
 titulo: 			.asciz "_____________________________________ \n \nUniversidad del Valle de Guatemala \nLaboratorio 1 \nCorrimiento de Bit \nAutores: Diego Crespo y Martín España \n_____________________________________"
-opciones: 			.asciz "---------------- \nMenu de opciones \n---------------- \n1. Iniciar secuencia: Corrimiento del bit activo \n2. Iniciar secuencia: Corrimiento del bit inactivo \n3. Salir... \n"
-opciones_uno: 		.asciz "---------------- \nCorrimiento del Bit Activo (Secuencia Activa) \n---------------- Continuar secuencia \n2. Terminar secuencia... \n3. Salir del programa..."
-opciones_dos: 		.asciz "---------------- \nCorrimiento del Bit Inactivo (Secuencia Activa) \n---------------- \n1. Terminar secuencia... \n2. Salir del programa..."
+opciones: 			.asciz "---------------- \nMenu de opciones \n---------------- \n1. Iniciar secuencia: Corrimiento del bit activo \n2. Iniciar secuencia: Corrimiento del bit inactivo \n"
 mensaje_error:		.asciz "ERROR :::: DEBE INGRESAR UNA OPCION VALIDA "
 decimal:			.asciz "%d"
 string: 			.asciz "%s"
